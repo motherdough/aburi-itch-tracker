@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f6efe6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Aburi Tracker" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>Aburi Itch Tracker</title>
+  <style>
+    :root{
+      --bg:#f7f3ed; --card:#fffdfa; --ink:#282522; --muted:#756f69;
+      --accent:#a75d3f; --accent-soft:#f1ddd3; --line:#e7ddd4;
+      --ok:#3f7650; --warn:#9b6a2f; --danger:#9d4242;
+      --shadow: 0 10px 30px rgba(68,45,32,.07);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-rounded,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif}
+    body{padding-bottom:96px}
+    button,input,select,textarea{font:inherit}
+    .app{max-width:760px;margin:auto;padding:18px 14px 40px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:2px 2px 14px}
+    .title h1{font-size:24px;margin:0;letter-spacing:-.4px}
+    .title p{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .badge{background:var(--accent-soft);color:var(--accent);padding:8px 10px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+    .card h2{font-size:17px;margin:0 0 12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:520px){.grid{grid-template-columns:1fr}.topbar{align-items:flex-start}}
+    .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .stat{border:1px solid var(--line);border-radius:16px;padding:12px;background:#fff}
+    .stat strong{display:block;font-size:20px}
+    .stat span{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+    label.field{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 6px}
+    input[type=date],input[type=text],select,textarea{
+      width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;color:var(--ink);outline:none
+    }
+    textarea{min-height:88px;resize:vertical}
+    .medrow{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:16px;padding:12px;margin:8px 0;background:#fff}
+    .medname{font-weight:800}
+    .medsub{font-size:12px;color:var(--muted);margin-top:2px}
+    .check{display:flex;align-items:center;gap:8px}
+    .check input{width:22px;height:22px}
+    .score{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+    .score input{display:none}
+    .score label{border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;background:#fff;font-size:12px;cursor:pointer}
+    .score input:checked+label{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .score small{display:block;font-size:10px;opacity:.8;margin-top:2px}
+    .photoGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+    .photoItem{position:relative;aspect-ratio:1/1;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#eee}
+    .photoItem img{width:100%;height:100%;object-fit:cover}
+    .photoItem button{position:absolute;top:5px;right:5px;border:0;background:rgba(0,0,0,.64);color:#fff;width:28px;height:28px;border-radius:50%}
+    .upload{display:flex;justify-content:center;align-items:center;border:1.5px dashed var(--line);border-radius:14px;padding:14px;background:#fff;cursor:pointer;color:var(--accent);font-weight:800}
+    .upload input{display:none}
+    .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+    button.btn{border:0;border-radius:14px;padding:12px 14px;font-weight:800;cursor:pointer}
+    .primary{background:var(--accent);color:#fff}
+    .secondary{background:#fff;border:1px solid var(--line)!important;color:var(--ink)}
+    .danger{background:#fff0f0;color:var(--danger);border:1px solid #f1cccc!important}
+    .hint{font-size:12px;color:var(--muted);line-height:1.45}
+    .timeline{display:flex;gap:7px;overflow:auto;padding-bottom:4px;scrollbar-width:none}
+    .day{min-width:54px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:8px 6px;text-align:center;cursor:pointer}
+    .day strong{display:block;font-size:12px}
+    .day span{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+    .day.active{background:var(--accent);color:white;border-color:var(--accent)}
+    .day.active span{color:#f8e8e1}
+    .day.done:after{content:"✓";display:block;font-size:10px;color:var(--ok);margin-top:2px}
+    .day.active.done:after{color:#fff}
+    .summaryBox{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:12px;line-height:1.5;max-height:260px;overflow:auto}
+    .footerNote{font-size:11px;color:var(--muted);text-align:center;margin:22px 8px}
+    .sticky{position:fixed;left:0;right:0;bottom:0;background:rgba(247,243,237,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:10px max(12px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));z-index:20}
+    .stickyinner{max-width:760px;margin:auto;display:flex;gap:8px}
+    .sticky .btn{flex:1}
+    .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#222;color:#fff;border-radius:999px;padding:10px 14px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;z-index:50}
+    .toast.show{opacity:1}
+    .sectiontag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="title">
+      <h1>Aburi Itch Tracker 🐾</h1>
+      <p>2-week medication + skin diary • started 7 Sep 2026</p>
+    </div>
+    <div class="badge" id="dayBadge">Day 1</div>
+  </div>
+
+  <div class="card">
+    <div class="sectiontag">Progress</div>
+    <div class="statgrid">
+      <div class="stat"><strong id="loggedDays">0</strong><span>days logged</span></div>
+      <div class="stat"><strong id="avgItch">—</strong><span>avg itch score</span></div>
+      <div class="stat"><strong id="medAdherence">—</strong><span>med adherence</span></div>
+    </div>
+    <label class="field">Jump to a day</label>
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <div class="card">
+    <div class="sectiontag">Today's entry</div>
+    <div class="grid">
+      <div>
+        <label class="field">Date</label>
+        <input type="date" id="date" min="2026-09-07" />
+      </div>
+      <div>
+        <label class="field">Overall day</label>
+        <select id="overall">
+          <option value="">Not rated</option>
+          <option>Better</option>
+          <option>About the same</option>
+          <option>Worse</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="field">Medications</label>
+    <div class="medrow">
+      <div>
+        <div class="medname">Prednisolone</div>
+        <div class="medsub" id="predDose">Dose: —</div>
+      </div>
+      <label class="check"><input type="checkbox" id="predTaken"> Given</label>
+    </div>
+    <div class="medrow">
+      <div><div class="medname">Gabapentin 50 mg</div><div class="medsub">Every 12 hours</div></div>
+      <div>
+        <label class="check"><input type="checkbox" id="gabaAM"> AM</label>
+        <label class="check"><input type="checkbox" id="gabaPM"> PM</label>
+      </div>
+    </div>
+
+    <label class="field">Overall itch / overgrooming</label>
+    <div class="score">
+      <input id="itch0" name="itch" type="radio" value="0"><label for="itch0">0<small>normal</small></label>
+      <input id="itch1" name="itch" type="radio" value="1"><label for="itch1">1<small>slight</small></label>
+      <input id="itch2" name="itch" type="radio" value="2"><label for="itch2">2<small>frequent</small></label>
+      <input id="itch3" name="itch" type="radio" value="3"><label for="itch3">3<small>intense</small></label>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label class="field">Neck / face scabs</label>
+        <select id="scabs">
+          <option value="">Not checked</option><option value="0">0 — none</option><option value="1">1 — mild</option><option value="2">2 — moderate</option><option value="3">3 — marked/new scabs</option>
+        </select>
+      </div>
+      <div>
+        <label class="field">Tail / back / hind-leg grooming</label>
+        <select id="grooming">
+          <option value="">Not checked</option><option value="0">0 — normal</option><option value="1">1 — slightly increased</option><option value="2">2 — frequent</option><option value="3">3 — repetitive/chewing</option>
+        </select>
+      </div>
+      <div>
+        <label class="field">Skin condition</label>
+        <select id="skin">
+          <option value="">Not checked</option><option>Normal / pale</option><option>Mild redness</option><option>Raw / irritated</option><option>New wounds / bleeding</option>
+        </select>
+      </div>
+      <div>
+        <label class="field">Fur today</label>
+        <select id="fur">
+          <option value="">Not checked</option><option>Looks better</option><option>Looks the same</option><option>Looks thinner</option><option>Possible regrowth</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label class="field">Sleepy / wobbly</label>
+        <select id="sedation">
+          <option value="">Not checked</option><option value="0">0 — no</option><option value="1">1 — a little</option><option value="2">2 — noticeable</option><option value="3">3 — marked</option>
+        </select>
+      </div>
+      <div>
+        <label class="field">Appetite</label>
+        <select id="appetite"><option value="">Not checked</option><option>Normal</option><option>Increased</option><option>Reduced</option></select>
+      </div>
+      <div>
+        <label class="field">Thirst / urination</label>
+        <select id="thirst"><option value="">Not checked</option><option>Normal</option><option>Increased</option><option>Reduced</option></select>
+      </div>
+      <div>
+        <label class="field">Seizure / unusual neurological signs</label>
+        <select id="neuro"><option value="No">No</option><option value="Yes">Yes</option></select>
+      </div>
+    </div>
+
+    <label class="field">Neurological details / time (if any)</label>
+    <input type="text" id="neuroDetails" placeholder="e.g. 03:20 — seizure ~60 sec, post-ictal pacing" />
+
+    <label class="field">Notes</label>
+    <textarea id="notes" placeholder="Where he groomed, any scratching, stool, behaviour, environmental changes, etc."></textarea>
+  </div>
+
+  <div class="card">
+    <div class="sectiontag">Photos</div>
+    <h2>Progress photos</h2>
+    <p class="hint">Take comparable photos of the back/tail base, entire tail, hind legs and neck/face. Photos stay on this device unless you export a backup.</p>
+    <label class="upload">＋ Add photos
+      <input id="photos" type="file" accept="image/*" multiple capture="environment" />
+    </label>
+    <div class="photoGrid" id="photoGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="sectiontag">Vet review</div>
+    <h2>Auto-summary</h2>
+    <div class="summaryBox" id="summaryBox">Log a few days and the summary will appear here.</div>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn secondary" id="copySummary">Copy summary</button>
+      <button class="btn secondary" id="exportCSV">Export CSV</button>
+      <button class="btn secondary" id="exportJSON">Backup data</button>
+      <label class="btn secondary" style="display:inline-flex;align-items:center;cursor:pointer">Restore backup
+        <input id="importJSON" type="file" accept="application/json" style="display:none">
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectiontag">Reference</div>
+    <h2>Prednisolone schedule</h2>
+    <div class="hint">
+      <b>7–9 Sep:</b> 0.42 mL once daily<br>
+      <b>10–14 Sep:</b> 0.26 mL once daily<br>
+      <b>15 Sep onward:</b> 0.13 mL once daily until veterinary review.
+    </div>
+  </div>
+
+  <div class="footerNote">Tracking tool only — medication changes and urgent symptoms should be discussed with Aburi's vet.</div>
+</div>
+
+<div class="sticky">
+  <div class="stickyinner">
+    <button class="btn secondary" id="todayBtn">Today</button>
+    <button class="btn primary" id="saveBtn">Save today's entry</button>
+  </div>
+</div>
+<div class="toast" id="toast">Saved</div>
+
+<script>
+const START = '2026-09-07';
+const END = '2026-09-21';
+const STORE_KEY = 'aburiTrackerEntriesV1';
+let currentPhotos = [];
+
+function iso(d){ return d.toISOString().slice(0,10); }
+function parseLocal(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function dateDiff(a,b){ return Math.round((parseLocal(b)-parseLocal(a))/86400000); }
+function displayDate(s){ return parseLocal(s).toLocaleDateString(undefined,{day:'numeric',month:'short'}); }
+function predDose(s){
+  if(!s) return '—';
+  if(s >= '2026-09-07' && s <= '2026-09-09') return '0.42 mL once daily';
+  if(s >= '2026-09-10' && s <= '2026-09-14') return '0.26 mL once daily';
+  if(s >= '2026-09-15') return '0.13 mL once daily';
+  return '—';
+}
+function entries(){ try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch{return {}} }
+function saveEntries(obj){ localStorage.setItem(STORE_KEY,JSON.stringify(obj)); }
+
+const dbPromise = new Promise((resolve,reject)=>{
+  const req=indexedDB.open('AburiTrackerDB',1);
+  req.onupgradeneeded=()=>{ const db=req.result; if(!db.objectStoreNames.contains('photos')) db.createObjectStore('photos',{keyPath:'id'}); };
+  req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);
+});
+async function getPhotosForDate(date){
+  const db=await dbPromise;
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction('photos','readonly'); const st=tx.objectStore('photos'); const req=st.getAll();
+    req.onsuccess=()=>resolve(req.result.filter(x=>x.date===date)); req.onerror=()=>reject(req.error);
+  });
+}
+async function addPhoto(date,file){
+  const data=await fileToDataURL(file);
+  const item={id:crypto.randomUUID(),date,name:file.name,type:file.type,data,createdAt:Date.now()};
+  const db=await dbPromise;
+  await new Promise((resolve,reject)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').put(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
+}
+async function deletePhoto(id){
+  const db=await dbPromise;
+  await new Promise((resolve,reject)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
+}
+function fileToDataURL(file){ return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)}) }
+
+function toast(msg='Saved'){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1500);
+}
+function selectedRadio(name){
+  const el=document.querySelector(`input[name="${name}"]:checked`); return el?Number(el.value):'';
+}
+function setRadio(name,value){
+  document.querySelectorAll(`input[name="${name}"]`).forEach(x=>x.checked=String(x.value)===String(value));
+}
+async function loadDate(date){
+  document.getElementById('date').value=date;
+  document.getElementById('predDose').textContent='Dose: '+predDose(date);
+  const e=entries()[date]||{};
+  document.getElementById('overall').value=e.overall||'';
+  document.getElementById('predTaken').checked=!!e.predTaken;
+  document.getElementById('gabaAM').checked=!!e.gabaAM;
+  document.getElementById('gabaPM').checked=!!e.gabaPM;
+  setRadio('itch',e.itch);
+  ['scabs','grooming','skin','fur','sedation','appetite','thirst','neuro','neuroDetails','notes'].forEach(id=>{
+    if(id==='neuro') document.getElementById(id).value=e[id]||'No';
+    else document.getElementById(id).value=e[id]??'';
+  });
+  currentPhotos=await getPhotosForDate(date);
+  renderPhotos();
+  updateUI();
+}
+function collect(){
+  const date=document.getElementById('date').value;
+  return {
+    date, predDose:predDose(date),
+    overall:document.getElementById('overall').value,
+    predTaken:document.getElementById('predTaken').checked,
+    gabaAM:document.getElementById('gabaAM').checked,
+    gabaPM:document.getElementById('gabaPM').checked,
+    itch:selectedRadio('itch'),
+    scabs:document.getElementById('scabs').value,
+    grooming:document.getElementById('grooming').value,
+    skin:document.getElementById('skin').value,
+    fur:document.getElementById('fur').value,
+    sedation:document.getElementById('sedation').value,
+    appetite:document.getElementById('appetite').value,
+    thirst:document.getElementById('thirst').value,
+    neuro:document.getElementById('neuro').value,
+    neuroDetails:document.getElementById('neuroDetails').value.trim(),
+    notes:document.getElementById('notes').value.trim(),
+    updatedAt:new Date().toISOString()
+  }
+}
+function saveCurrent(){
+  const e=collect(); if(!e.date) return;
+  const all=entries(); all[e.date]=e; saveEntries(all); updateUI(); toast();
+}
+function renderTimeline(){
+  const box=document.getElementById('timeline'); box.innerHTML='';
+  const all=entries(); const active=document.getElementById('date').value;
+  const d=parseLocal(START), end=parseLocal(END);
+  while(d<=end){
+    const s=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+    const b=document.createElement('button'); b.className='day'+(s===active?' active':'')+(all[s]?' done':'');
+    b.innerHTML=`<strong>${d.toLocaleDateString(undefined,{weekday:'short'})}</strong><span>${d.getDate()} Sep</span>`;
+    b.onclick=()=>loadDate(s); box.appendChild(b); d.setDate(d.getDate()+1);
+  }
+}
+function renderPhotos(){
+  const box=document.getElementById('photoGrid');box.innerHTML='';
+  currentPhotos.forEach(p=>{
+    const div=document.createElement('div');div.className='photoItem';
+    div.innerHTML=`<img alt="Aburi progress photo" src="${p.data}"><button aria-label="Delete photo">×</button>`;
+    div.querySelector('button').onclick=async()=>{await deletePhoto(p.id);currentPhotos=currentPhotos.filter(x=>x.id!==p.id);renderPhotos();toast('Photo deleted')};
+    box.appendChild(div);
+  })
+}
+function summary(){
+  const all=entries(); const keys=Object.keys(all).sort();
+  if(!keys.length) return 'Log a few days and the summary will appear here.';
+  const itch=keys.map(k=>Number(all[k].itch)).filter(Number.isFinite);
+  const first=keys[0], last=keys[keys.length-1];
+  const better=keys.filter(k=>all[k].overall==='Better').length;
+  const worse=keys.filter(k=>all[k].overall==='Worse').length;
+  const neuro=keys.filter(k=>all[k].neuro==='Yes');
+  const scabScores=keys.map(k=>Number(all[k].scabs)).filter(Number.isFinite);
+  const groomScores=keys.map(k=>Number(all[k].grooming)).filter(Number.isFinite);
+  function change(arr){ if(arr.length<2) return 'not enough data'; const delta=arr[arr.length-1]-arr[0]; return delta<0?'improved':delta>0?'worsened':'unchanged'; }
+  const medExpected=keys.length*3;
+  const medDone=keys.reduce((n,k)=>n+(all[k].predTaken?1:0)+(all[k].gabaAM?1:0)+(all[k].gabaPM?1:0),0);
+  const avg=itch.length?(itch.reduce((a,b)=>a+b,0)/itch.length).toFixed(1):'—';
+  return `ABURI — ITCH / OVERGROOMING TRACKER
+Period logged: ${displayDate(first)} to ${displayDate(last)} (${keys.length} days)
+
+Average itch score: ${avg}/3
+Neck/face scabs: ${change(scabScores)}
+Tail/back/hind-leg grooming: ${change(groomScores)}
+Days rated better: ${better}
+Days rated worse: ${worse}
+Medication adherence: ${Math.round(medDone/medExpected*100)}%
+
+Neurological events: ${neuro.length ? neuro.map(k=>`${displayDate(k)}${all[k].neuroDetails?': '+all[k].neuroDetails:''}`).join('; ') : 'none logged'}
+
+Latest entry (${displayDate(last)}):
+• Prednisolone: ${all[last].predDose} — ${all[last].predTaken?'given':'not marked given'}
+• Itch: ${all[last].itch===''?'not rated':all[last].itch+'/3'}
+• Scabs: ${all[last].scabs===''?'not rated':all[last].scabs+'/3'}
+• Grooming: ${all[last].grooming===''?'not rated':all[last].grooming+'/3'}
+• Skin: ${all[last].skin||'not recorded'}
+• Fur: ${all[last].fur||'not recorded'}
+• Appetite: ${all[last].appetite||'not recorded'}
+• Thirst/urination: ${all[last].thirst||'not recorded'}
+• Sedation/wobbliness: ${all[last].sedation===''?'not rated':all[last].sedation+'/3'}
+${all[last].notes?'• Notes: '+all[last].notes:''}`;
+}
+function updateUI(){
+  renderTimeline();
+  const all=entries(), keys=Object.keys(all);
+  document.getElementById('loggedDays').textContent=keys.length;
+  const itch=keys.map(k=>Number(all[k].itch)).filter(Number.isFinite);
+  document.getElementById('avgItch').textContent=itch.length?(itch.reduce((a,b)=>a+b,0)/itch.length).toFixed(1):'—';
+  if(keys.length){
+    const expected=keys.length*3;
+    const done=keys.reduce((n,k)=>n+(all[k].predTaken?1:0)+(all[k].gabaAM?1:0)+(all[k].gabaPM?1:0),0);
+    document.getElementById('medAdherence').textContent=Math.round(done/expected*100)+'%';
+  } else document.getElementById('medAdherence').textContent='—';
+  document.getElementById('summaryBox').textContent=summary();
+  const d=document.getElementById('date').value||START;
+  document.getElementById('dayBadge').textContent='Day '+(dateDiff(START,d)+1);
+}
+function csvEscape(v){ const s=String(v??''); return `"${s.replaceAll('"','""')}"`; }
+function download(name,text,type){
+  const blob=new Blob([text],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href);
+}
+async function exportBackup(){
+  const all=entries();
+  const db=await dbPromise;
+  const photos=await new Promise((resolve,reject)=>{const tx=db.transaction('photos','readonly');const req=tx.objectStore('photos').getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
+  download('aburi-tracker-backup.json',JSON.stringify({version:1,entries:all,photos},null,2),'application/json');
+}
+function exportCSV(){
+  const all=entries(), keys=Object.keys(all).sort();
+  const cols=['date','predDose','predTaken','gabaAM','gabaPM','itch','scabs','grooming','skin','fur','sedation','appetite','thirst','neuro','neuroDetails','overall','notes'];
+  const rows=[cols.join(',')].concat(keys.map(k=>cols.map(c=>csvEscape(all[k][c])).join(',')));
+  download('aburi-itch-tracker.csv',rows.join('\n'),'text/csv');
+}
+async function restoreBackup(file){
+  const obj=JSON.parse(await file.text());
+  if(!obj.entries) throw new Error('Invalid backup');
+  saveEntries(obj.entries);
+  if(Array.isArray(obj.photos)){
+    const db=await dbPromise;
+    const tx=db.transaction('photos','readwrite'); const st=tx.objectStore('photos'); st.clear(); obj.photos.forEach(p=>st.put(p));
+    await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});
+  }
+  await loadDate(document.getElementById('date').value||START); toast('Backup restored');
+}
+
+document.getElementById('saveBtn').onclick=saveCurrent;
+document.getElementById('date').onchange=e=>loadDate(e.target.value);
+document.getElementById('todayBtn').onclick=()=>{
+  const t=new Date(); const local=[t.getFullYear(),String(t.getMonth()+1).padStart(2,'0'),String(t.getDate()).padStart(2,'0')].join('-');
+  loadDate(local<START?START:local);
+};
+document.getElementById('photos').onchange=async e=>{
+  const date=document.getElementById('date').value;
+  for(const f of [...e.target.files]) await addPhoto(date,f);
+  e.target.value=''; currentPhotos=await getPhotosForDate(date); renderPhotos(); toast('Photo added');
+};
+document.getElementById('copySummary').onclick=async()=>{await navigator.clipboard.writeText(summary());toast('Summary copied')};
+document.getElementById('exportCSV').onclick=exportCSV;
+document.getElementById('exportJSON').onclick=exportBackup;
+document.getElementById('importJSON').onchange=async e=>{if(e.target.files[0]){try{await restoreBackup(e.target.files[0])}catch(err){alert('Could not restore this backup.')}}};
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+const today=new Date();
+const localToday=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+loadDate(localToday>=START?localToday:START);
+</script>
+</body>
+</html>
