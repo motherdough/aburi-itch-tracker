@@ -21,3 +21,4 @@ DATA
 - "Export CSV" gives a vet-friendly log without photo files.
 
 This prototype does not sync across devices or send reminders.
+Deployed 7 Sep 2026
